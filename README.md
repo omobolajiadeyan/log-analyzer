@@ -113,5 +113,5 @@ log-analyzer/
 
 ## Author
 
-**Omobolaji Adeyanju** — Cybersecurity Portfolio Project  
+**Omobolaji Adeyan** — Cybersecurity Portfolio Project  
 [GitHub](https://github.com/oadeyan)

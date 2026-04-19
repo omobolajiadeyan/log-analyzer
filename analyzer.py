@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Log Analyzer - Detect threats and suspicious activity in system/application logs.
-Author: Omobolaji Adeyanju
+Author: Omobolaji Adeyan
 """
 
 import re
