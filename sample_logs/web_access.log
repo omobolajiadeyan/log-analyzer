@@ -1,0 +1,9 @@
+192.168.1.1 - - [10/Jan/2024:08:00:01 +0000] "GET /index.html HTTP/1.1" 200 512
+192.168.1.1 - - [10/Jan/2024:08:00:05 +0000] "GET /about.html HTTP/1.1" 200 256
+10.0.0.50 - - [10/Jan/2024:08:01:00 +0000] "GET /login HTTP/1.1" 200 1024
+10.0.0.50 - - [10/Jan/2024:08:01:10 +0000] "POST /search?q=' OR '1'='1 HTTP/1.1" 400 128
+10.0.0.50 - - [10/Jan/2024:08:01:11 +0000] "GET /products?id=1 UNION SELECT username,password FROM users-- HTTP/1.1" 500 64
+203.0.113.99 - - [10/Jan/2024:08:02:00 +0000] "GET /index.php?page=../../../../etc/passwd HTTP/1.1" 403 32
+203.0.113.99 - - [10/Jan/2024:08:02:01 +0000] "GET /index.php?page=%2e%2e%2f%2e%2e%2fetc/shadow HTTP/1.1" 403 32
+198.51.100.7 - - [10/Jan/2024:08:03:00 +0000] "GET /search?q=<script>alert(document.cookie)</script> HTTP/1.1" 200 512
+172.16.0.5 - - [10/Jan/2024:08:10:00 +0000] "GET /api/data HTTP/1.1" 200 2048

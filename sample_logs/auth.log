@@ -1,0 +1,12 @@
+Jan 10 08:12:01 server sshd[1234]: Failed password for invalid user admin from 192.168.1.105 port 54321 ssh2
+Jan 10 08:12:03 server sshd[1234]: Failed password for invalid user root from 192.168.1.105 port 54322 ssh2
+Jan 10 08:12:05 server sshd[1234]: Failed password for invalid user test from 192.168.1.105 port 54323 ssh2
+Jan 10 08:12:07 server sshd[1234]: Failed password for invalid user oracle from 192.168.1.105 port 54324 ssh2
+Jan 10 08:12:09 server sshd[1234]: Failed password for invalid user ubuntu from 192.168.1.105 port 54325 ssh2
+Jan 10 08:12:11 server sshd[1234]: error: maximum authentication attempts exceeded for invalid user admin from 192.168.1.105 port 54326 ssh2 [preauth]
+Jan 10 08:15:00 server sshd[2345]: Accepted password for root from 10.0.0.5 port 22 ssh2
+Jan 10 08:15:01 server sshd[2345]: pam_unix(sshd:session): session opened for user root by (uid=0)
+Jan 10 09:00:00 server sudo[3456]: user1 : TTY=pts/0 ; PWD=/home/user1 ; USER=root ; COMMAND=/bin/bash
+Jan 10 09:01:00 server cron[4567]: (user1) CMD (/tmp/backdoor.sh)
+Jan 10 09:05:00 server kernel: iptables: SYN flood from 203.0.113.42
+Jan 10 09:10:00 server sshd[5678]: Accepted password for alice from 192.168.1.10 port 33445 ssh2
