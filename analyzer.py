@@ -102,7 +102,7 @@ def print_banner():
   ██║     ██║   ██║██║   ██║    ██╔══██║██║╚██╗██║██╔══██║██║    ╚██╔╝     ██╔╝ ██╔══╝  ██╔══██╗
   ███████╗╚██████╔╝╚██████╔╝    ██║  ██║██║ ╚████║██║  ██║███████╗██║      ██║  ███████╗██║  ██║
   ╚══════╝ ╚═════╝  ╚═════╝     ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═╝      ╚═╝  ╚══════╝╚═╝  ╚═╝
-{RESET}{GRAY}  Threat detection engine for system & application logs | github.com/oadeyan{RESET}
+{RESET}{GRAY}  Threat detection engine for system & application logs | github.com/omobolajiadeyan{RESET}
 """)
 
 
