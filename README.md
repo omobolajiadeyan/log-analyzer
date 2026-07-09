@@ -38,7 +38,7 @@ Logs are the first place a security analyst looks during an incident. This tool 
 ## Installation
 
 ```bash
-git clone https://github.com/oadeyan/log-analyzer.git
+git clone https://github.com/omobolajiadeyan/log-analyzer.git
 cd log-analyzer
 python --version  # Requires Python 3.10+
 ```
@@ -114,4 +114,4 @@ log-analyzer/
 ## Author
 
 **Omobolaji Adeyan** — Cybersecurity Portfolio Project  
-[GitHub](https://github.com/oadeyan)
+[GitHub](https://github.com/omobolajiadeyan)
