@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Log Analyzer - Detect threats and suspicious activity in system/application logs.
 Author: Omobolaji Adeyan
@@ -104,17 +104,6 @@ def print_banner():
 {GRAY}  Threat detection for system and application logs
   MITRE ATT&CK mapped alerts | github.com/omobolajiadeyan{RESET}
 """)
-    return
-    print(f"""
-{CYAN}{BOLD}
-  ██╗      ██████╗  ██████╗      █████╗ ███╗   ██╗ █████╗ ██╗  ██╗   ██╗███████╗███████╗██████╗
-  ██║     ██╔═══██╗██╔════╝     ██╔══██╗████╗  ██║██╔══██╗██║  ╚██╗ ██╔╝╚════██║██╔════╝██╔══██╗
-  ██║     ██║   ██║██║  ███╗    ███████║██╔██╗ ██║███████║██║   ╚████╔╝     ██╔╝█████╗  ██████╔╝
-  ██║     ██║   ██║██║   ██║    ██╔══██║██║╚██╗██║██╔══██║██║    ╚██╔╝     ██╔╝ ██╔══╝  ██╔══██╗
-  ███████╗╚██████╔╝╚██████╔╝    ██║  ██║██║ ╚████║██║  ██║███████╗██║      ██║  ███████╗██║  ██║
-  ╚══════╝ ╚═════╝  ╚═════╝     ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═╝      ╚═╝  ╚══════╝╚═╝  ╚═╝
-{RESET}{GRAY}  Threat detection engine for system & application logs | github.com/omobolajiadeyan{RESET}
-""")
 
 
 def print_alert(alert: Alert, verbose: bool = False):
@@ -149,7 +138,7 @@ def print_results(result: AnalysisResult, verbose: bool = False):
         return
 
     for category, alerts in by_category.items():
-        print(f"\n{BOLD}{CYAN}  [{category}]{RESET}  —  {len(alerts)} alert(s)")
+        print(f"\n{BOLD}{CYAN}  [{category}]{RESET}  â€”  {len(alerts)} alert(s)")
         for alert in alerts:
             print_alert(alert, verbose=verbose)
 
@@ -164,7 +153,7 @@ def print_results(result: AnalysisResult, verbose: bool = False):
         top_ips = sorted(ip_counts.items(), key=lambda x: x[1], reverse=True)[:5]
         print(f"\n{BOLD}  Top Offending IPs:{RESET}")
         for ip, count in top_ips:
-            print(f"    {RED}{ip}{RESET}  —  {count} alert(s)")
+            print(f"    {RED}{ip}{RESET}  â€”  {count} alert(s)")
 
     print()
 
@@ -293,7 +282,7 @@ def collect_log_files(target: str) -> list[str]:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Log Analyzer — Threat detection for system and application logs",
+        description="Log Analyzer â€” Threat detection for system and application logs",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
