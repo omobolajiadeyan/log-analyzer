@@ -1,0 +1,37 @@
+name: FreNiMi Log Analyzer
+description: Analyze system and application logs for threat indicators with MITRE ATT&CK mapping and SARIF output.
+author: Omobolaji Adeyan
+
+branding:
+  icon: activity
+  color: red
+
+inputs:
+  path:
+    description: Log file or directory to analyze.
+    required: false
+    default: sample_logs
+  severity:
+    description: Minimum severity to report: CRITICAL, HIGH, MEDIUM, or LOW.
+    required: false
+    default: LOW
+  output:
+    description: SARIF output file path.
+    required: false
+    default: log-analyzer.sarif
+
+outputs:
+  sarif:
+    description: Path to the generated SARIF report.
+    value: ${{ inputs.output }}
+
+runs:
+  using: composite
+  steps:
+    - name: Run log analysis
+      shell: bash
+      run: |
+        python "${{ github.action_path }}/analyzer.py" "${{ inputs.path }}" \
+          --severity "${{ inputs.severity }}" \
+          --format sarif \
+          --output "${{ inputs.output }}"

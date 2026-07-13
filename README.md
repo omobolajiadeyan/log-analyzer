@@ -1,28 +1,34 @@
 # Log Analyzer
 
-A lightweight threat detection engine that scans system and application log files for indicators of attack, suspicious behavior, and policy violations — mapped to the MITRE ATT&CK framework.
+A lightweight Python threat-detection engine for system and application logs.
+It scans log files for attack indicators, suspicious behavior, and policy
+violations, then maps alerts to MITRE ATT&CK techniques.
+
+Built and maintained by [Omobolaji Adeyan](https://github.com/omobolajiadeyan)
+as part of a practical security-engineering toolkit.
 
 ## Why This Matters
 
-Logs are the first place a security analyst looks during an incident. This tool automates the tedious process of manually reviewing thousands of log lines, surfacing only what matters — with context.
+Logs are often the first place security teams look during an investigation.
+This tool helps surface meaningful signals from authentication logs, web access
+logs, system logs, and application logs without requiring a full SIEM setup.
 
 ## Features
 
 - 13 built-in detection rules across 6 threat categories
-- MITRE ATT&CK technique mapping for every alert
-- Analyzes SSH, auth, web access, system, and application logs
-- Identifies top offending IP addresses automatically
-- Color-coded severity: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`
-- JSON export for SIEM integration or reporting
-- Scans entire directories of log files in one command
-- Zero third-party dependencies — pure Python standard library
+- MITRE ATT&CK mapping for every alert
+- JSON export for reporting and automation
+- SARIF 2.1.0 export for GitHub Code Scanning
+- Reusable GitHub Action wrapper
+- Top offending IP summary
+- Zero third-party dependencies
 
-## Detection Categories & Rules
+## Detection Categories And Rules
 
 | ID | Rule | Category | Severity | MITRE |
 |---|---|---|---|---|
 | AUTH-001 | Failed Login Attempt | Authentication | MEDIUM | T1110 |
-| AUTH-002 | Multiple Failed Logins (Brute Force) | Authentication | HIGH | T1110 |
+| AUTH-002 | Multiple Failed Logins | Authentication | HIGH | T1110 |
 | AUTH-003 | Root Login | Authentication | HIGH | T1078 |
 | NET-001 | Port Scan Detected | Network | HIGH | T1046 |
 | NET-002 | SQL Injection Attempt | Web Attack | CRITICAL | T1190 |
@@ -40,10 +46,12 @@ Logs are the first place a security analyst looks during an incident. This tool 
 ```bash
 git clone https://github.com/omobolajiadeyan/log-analyzer.git
 cd log-analyzer
-python --version  # Requires Python 3.10+
+python --version
 ```
 
-## Usage
+Python 3.10+ is recommended. No third-party packages are required.
+
+## Local Usage
 
 ```bash
 # Analyze a single log file
@@ -52,66 +60,84 @@ python analyzer.py sample_logs/auth.log
 # Analyze all logs in a directory
 python analyzer.py sample_logs/
 
-# Show full log lines for each alert
+# Show log-line context for each alert
 python analyzer.py sample_logs/ --verbose
 
 # Only show HIGH and CRITICAL alerts
 python analyzer.py sample_logs/ --severity HIGH
 
-# Export report to JSON
+# Export JSON
 python analyzer.py sample_logs/ --output report.json
 
-# Analyze real system logs (Linux)
-python analyzer.py /var/log/auth.log
-python analyzer.py /var/log/
+# Export SARIF for GitHub Code Scanning
+python analyzer.py sample_logs/ --format sarif --output log-analyzer.sarif
 ```
 
-## Example Output
+## GitHub Action Usage
 
+```yaml
+name: Log Analyzer
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze-logs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: omobolajiadeyan/log-analyzer@main
+        with:
+          path: sample_logs
+          severity: HIGH
+          output: log-analyzer.sarif
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: log-analyzer.sarif
 ```
-  LOG ANALYZER
-  Threat detection engine for system & application logs
 
-Analyzing 2 file(s) with 13 detection rules...
+## Output
 
-=================================================================
-  LOG ANALYZER REPORT
-=================================================================
-  Files analyzed : 2
-  Total lines    : 21
-  Total alerts   : 9
-  Critical       : 2
-  High           : 6
-=================================================================
+The analyzer reports:
 
-  [Authentication]  —  5 alert(s)
+- rule ID and rule name
+- severity
+- category
+- MITRE ATT&CK technique
+- file and line number
+- matching log-line context
 
-  [CRITICAL] Multiple Failed Logins (Brute Force)  (AUTH-002)
-    Category : Authentication
-    MITRE    : T1110 - Brute Force
-    File     : sample_logs/auth.log:6
-    Detail   : Account locked or too many failed attempts — possible brute-force.
-
-  Top Offending IPs:
-    192.168.1.105  —  6 alert(s)
-    203.0.113.99   —  2 alert(s)
-    10.0.0.50      —  2 alert(s)
-```
+JSON and SARIF outputs are designed for automation and review workflows.
 
 ## Project Structure
 
-```
+```text
 log-analyzer/
-├── analyzer.py        # Main CLI entrypoint
-├── rules.py           # Detection rules with MITRE mappings
-├── requirements.txt   # No dependencies needed
-├── sample_logs/
-│   ├── auth.log       # Sample SSH/auth log with threats
-│   └── web_access.log # Sample web log with injection attempts
-└── README.md
+|-- action.yml
+|-- analyzer.py
+|-- rules.py
+|-- sample_logs/
+|   |-- auth.log
+|   `-- web_access.log
+|-- tests/
+|   `-- test_analyzer.py
+`-- README.md
 ```
+
+## Limits
+
+This tool is a lightweight detection aid, not a replacement for a full SIEM,
+EDR, incident-response process, or tuned production detection pipeline. Treat
+alerts as leads for investigation and validate them against your environment.
 
 ## Author
 
-**Omobolaji Adeyan** — Cybersecurity Portfolio Project  
-[GitHub](https://github.com/omobolajiadeyan) · [Website](https://omobolajiadeyan.com)
+**Omobolaji Adeyan**  
+Security Engineer and open-source security tooling maintainer  
+[GitHub](https://github.com/omobolajiadeyan) | [Website](https://omobolajiadeyan.com)

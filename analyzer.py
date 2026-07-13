@@ -14,6 +14,11 @@ from collections import defaultdict
 from dataclasses import dataclass, field, asdict
 from rules import RULES, SEVERITY_ORDER
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(errors="replace")
+
 # ANSI colours
 RED    = "\033[91m"
 ORANGE = "\033[38;5;208m"
@@ -95,6 +100,12 @@ def analyze_file(filepath: str) -> tuple[list[Alert], int]:
 
 def print_banner():
     print(f"""
+{CYAN}{BOLD}  LOG ANALYZER{RESET}
+{GRAY}  Threat detection for system and application logs
+  MITRE ATT&CK mapped alerts | github.com/omobolajiadeyan{RESET}
+""")
+    return
+    print(f"""
 {CYAN}{BOLD}
   ██╗      ██████╗  ██████╗      █████╗ ███╗   ██╗ █████╗ ██╗  ██╗   ██╗███████╗███████╗██████╗
   ██║     ██╔═══██╗██╔════╝     ██╔══██╗████╗  ██║██╔══██╗██║  ╚██╗ ██╔╝╚════██║██╔════╝██╔══██╗
@@ -170,6 +181,100 @@ def export_json(result: AnalysisResult, output_file: str):
     print(f"{GREEN}Report exported to {output_file}{RESET}")
 
 
+def sarif_level(severity: str) -> str:
+    return {
+        "CRITICAL": "error",
+        "HIGH": "error",
+        "MEDIUM": "warning",
+        "LOW": "note",
+    }.get(severity, "warning")
+
+
+def build_sarif(result: AnalysisResult) -> dict:
+    rules_by_id = {}
+    sarif_results = []
+
+    for alert in result.alerts:
+        rules_by_id.setdefault(
+            alert.rule_id,
+            {
+                "id": alert.rule_id,
+                "name": alert.rule_name,
+                "shortDescription": {"text": alert.description},
+                "fullDescription": {
+                    "text": (
+                        f"{alert.description} Category: {alert.category}. "
+                        f"MITRE ATT&CK mapping: {alert.mitre}."
+                    )
+                },
+                "defaultConfiguration": {"level": sarif_level(alert.severity)},
+                "properties": {
+                    "category": alert.category,
+                    "mitre": alert.mitre,
+                    "security-severity": alert.severity,
+                },
+            },
+        )
+        sarif_results.append(
+            {
+                "ruleId": alert.rule_id,
+                "level": sarif_level(alert.severity),
+                "message": {
+                    "text": (
+                        f"{alert.rule_name}: {alert.description} "
+                        f"MITRE ATT&CK: {alert.mitre}."
+                    )
+                },
+                "locations": [
+                    {
+                        "physicalLocation": {
+                            "artifactLocation": {"uri": alert.file.replace("\\", "/")},
+                            "region": {
+                                "startLine": alert.line_number,
+                                "snippet": {"text": alert.line_content},
+                            },
+                        }
+                    }
+                ],
+                "properties": {
+                    "severity": alert.severity,
+                    "category": alert.category,
+                    "mitre": alert.mitre,
+                },
+            }
+        )
+
+    return {
+        "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+        "version": "2.1.0",
+        "runs": [
+            {
+                "tool": {
+                    "driver": {
+                        "name": "FreNiMi Log Analyzer",
+                        "informationUri": "https://github.com/omobolajiadeyan/log-analyzer",
+                        "rules": list(rules_by_id.values()),
+                    }
+                },
+                "results": sarif_results,
+            }
+        ],
+    }
+
+
+def export_sarif(result: AnalysisResult, output_file: str):
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(build_sarif(result), f, indent=2)
+    print(f"{GREEN}SARIF report exported to {output_file}{RESET}")
+
+
+def export_results(result: AnalysisResult, output_file: str, output_format: str):
+    if output_format == "sarif":
+        export_sarif(result, output_file)
+    else:
+        export_json(result, output_file)
+
+
 def collect_log_files(target: str) -> list[str]:
     """Collect all readable log files from a path."""
     target_path = Path(target)
@@ -198,11 +303,18 @@ Examples:
   python analyzer.py sample_logs/ --verbose         # Show full log lines
   python analyzer.py sample_logs/ --severity HIGH   # Only HIGH and CRITICAL alerts
   python analyzer.py sample_logs/ --output report.json
+  python analyzer.py sample_logs/ --format sarif -o report.sarif
         """,
     )
     parser.add_argument("target", help="Log file or directory to analyze")
     parser.add_argument("--verbose", "-v", action="store_true", help="Show full log line for each alert")
-    parser.add_argument("--output", "-o", help="Export results to JSON file")
+    parser.add_argument("--output", "-o", help="Export results to a file")
+    parser.add_argument(
+        "--format",
+        choices=["json", "sarif"],
+        default="json",
+        help="Output format used with --output",
+    )
     parser.add_argument(
         "--severity",
         choices=["CRITICAL", "HIGH", "MEDIUM", "LOW"],
@@ -239,7 +351,7 @@ Examples:
     print_results(result, verbose=args.verbose)
 
     if args.output:
-        export_json(result, args.output)
+        export_results(result, args.output, args.format)
 
     if result.critical_count > 0:
         sys.exit(2)

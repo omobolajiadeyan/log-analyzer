@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from analyzer import Alert, AnalysisResult, analyze_file, collect_log_files
+from analyzer import Alert, AnalysisResult, analyze_file, build_sarif, collect_log_files
 
 FIXTURES = Path(__file__).resolve().parent.parent / "sample_logs"
 
@@ -126,6 +126,47 @@ class AnalysisResultTests(unittest.TestCase):
         self.assertEqual(result.total_alerts, 3)
         self.assertEqual(result.critical_count, 1)
         self.assertEqual(result.high_count, 1)
+
+
+class SarifTests(unittest.TestCase):
+    def test_sarif_export_uses_2_1_0_schema(self):
+        result = AnalysisResult(
+            files_analyzed=["web.log"],
+            total_lines=1,
+            alerts=[
+                Alert(
+                    "NET-002",
+                    "SQL Injection Attempt",
+                    "CRITICAL",
+                    "Web Attack",
+                    "T1190",
+                    "web.log",
+                    1,
+                    "GET /products?id=1 UNION SELECT password FROM users",
+                    "SQL injection pattern detected.",
+                )
+            ],
+        )
+
+        sarif = build_sarif(result)
+
+        self.assertEqual(sarif["version"], "2.1.0")
+        self.assertEqual(sarif["runs"][0]["tool"]["driver"]["name"], "FreNiMi Log Analyzer")
+        self.assertEqual(sarif["runs"][0]["results"][0]["ruleId"], "NET-002")
+        self.assertEqual(sarif["runs"][0]["results"][0]["level"], "error")
+
+    def test_sarif_rule_includes_mitre_mapping(self):
+        result = AnalysisResult()
+        result.alerts = [
+            Alert("AUTH-001", "Failed Login", "MEDIUM", "Authentication", "T1110", "auth.log", 4, "Failed password", "Failed login detected.")
+        ]
+
+        sarif = build_sarif(result)
+        rule = sarif["runs"][0]["tool"]["driver"]["rules"][0]
+
+        self.assertEqual(rule["properties"]["mitre"], "T1110")
+        self.assertEqual(rule["properties"]["category"], "Authentication")
+        self.assertIn("MITRE ATT&CK", rule["fullDescription"]["text"])
 
 
 if __name__ == "__main__":
