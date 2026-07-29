@@ -1,3 +1,4 @@
+import json
 import sys
 import tempfile
 import unittest
@@ -5,7 +6,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from analyzer import Alert, AnalysisResult, analyze_file, build_sarif, collect_log_files
+from analyzer import (
+    Alert,
+    AnalysisResult,
+    analyze_file,
+    build_sarif,
+    collect_log_files,
+    export_json,
+    top_offending_ips,
+)
 
 FIXTURES = Path(__file__).resolve().parent.parent / "sample_logs"
 
@@ -127,6 +136,26 @@ class AnalysisResultTests(unittest.TestCase):
         self.assertEqual(result.critical_count, 1)
         self.assertEqual(result.high_count, 1)
 
+    def test_summary_counts_support_review_output(self):
+        result = AnalysisResult()
+        result.alerts = [
+            Alert("NET-002", "SQLi", "CRITICAL", "Web Attack", "T1190", "f", 1, "10.0.0.1 attack", ""),
+            Alert("NET-003", "XSS", "HIGH", "Web Attack", "T1059.007", "f", 2, "10.0.0.1 xss", ""),
+            Alert("AUTH-001", "Failed login", "MEDIUM", "Authentication", "T1110", "f", 3, "192.0.2.10 auth", ""),
+        ]
+
+        self.assertEqual(result.risk_level, "CRITICAL")
+        self.assertEqual(result.severity_counts["CRITICAL"], 1)
+        self.assertEqual(result.severity_counts["HIGH"], 1)
+        self.assertEqual(result.category_counts["Web Attack"], 2)
+        self.assertEqual(
+            top_offending_ips(result.alerts),
+            [
+                {"ip": "10.0.0.1", "alert_count": 2},
+                {"ip": "192.0.2.10", "alert_count": 1},
+            ],
+        )
+
 
 class SarifTests(unittest.TestCase):
     def test_sarif_export_uses_2_1_0_schema(self):
@@ -167,6 +196,43 @@ class SarifTests(unittest.TestCase):
         self.assertEqual(rule["properties"]["mitre"], "T1110")
         self.assertEqual(rule["properties"]["category"], "Authentication")
         self.assertIn("MITRE ATT&CK", rule["fullDescription"]["text"])
+
+
+class JsonExportTests(unittest.TestCase):
+    def test_json_export_includes_summary_for_report_viewer(self):
+        result = AnalysisResult(
+            files_analyzed=["auth.log"],
+            total_lines=1,
+            alerts=[
+                Alert(
+                    "AUTH-001",
+                    "Failed Login Attempt",
+                    "MEDIUM",
+                    "Authentication",
+                    "T1110",
+                    "auth.log",
+                    1,
+                    "Failed password from 192.0.2.10",
+                    "Failed login detected.",
+                )
+            ],
+        )
+
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        try:
+            export_json(result, path)
+            data = json.loads(Path(path).read_text())
+        finally:
+            Path(path).unlink()
+
+        self.assertEqual(data["summary"]["risk_level"], "MEDIUM")
+        self.assertEqual(data["summary"]["severity_counts"]["MEDIUM"], 1)
+        self.assertEqual(data["summary"]["category_counts"]["Authentication"], 1)
+        self.assertEqual(
+            data["summary"]["top_offending_ips"],
+            [{"ip": "192.0.2.10", "alert_count": 1}],
+        )
 
 
 if __name__ == "__main__":

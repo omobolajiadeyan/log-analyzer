@@ -17,11 +17,24 @@ logs, system logs, and application logs without requiring a full SIEM setup.
 
 - 13 built-in detection rules across 6 threat categories
 - MITRE ATT&CK mapping for every alert
-- JSON export for reporting and automation
+- JSON export with reviewer-friendly summary fields
 - SARIF 2.1.0 export for GitHub Code Scanning
 - Reusable GitHub Action wrapper
+- Browser report viewer for exported JSON
 - Top offending IP summary
 - Zero third-party dependencies
+
+## Current Evidence
+
+The sample evidence run analyzes two public-safe synthetic log files and
+produces 19 MITRE-mapped alerts across authentication, web attack, malware,
+network, privilege-escalation, and persistence signals.
+
+![Log Analyzer evidence run](docs/assets/log-analyzer-evidence.svg)
+
+See [Project Evidence](docs/PROJECT_EVIDENCE.md) for exact commands, expected
+sample counts, JSON/SARIF evidence, and tool boundaries. External reviewers can
+use the [Evaluator Guide](docs/EVALUATOR_GUIDE.md) for a five-minute review.
 
 ## Detection Categories And Rules
 
@@ -72,6 +85,24 @@ python analyzer.py sample_logs/ --output report.json
 # Export SARIF for GitHub Code Scanning
 python analyzer.py sample_logs/ --format sarif --output log-analyzer.sarif
 ```
+
+Critical findings intentionally return exit code `2`, which makes the tool
+useful in CI workflows where critical log evidence should fail the check.
+
+## Browser Report Viewer
+
+`web/` is a static report viewer for exported Log Analyzer JSON. It loads the
+checked-in `web/sample-report.json` by default and can load a fresh JSON report
+from your machine.
+
+```bash
+python analyzer.py sample_logs/ --output web/sample-report.json
+cd web
+python3 -m http.server 8080
+```
+
+Open `http://127.0.0.1:8080/` to inspect risk level, severity counts, top
+offending IPs, categories, MITRE mappings, and alert snippets.
 
 ## GitHub Action Usage
 
@@ -127,6 +158,11 @@ log-analyzer/
 |   `-- web_access.log
 |-- tests/
 |   `-- test_analyzer.py
+|-- web/
+|   |-- index.html
+|   |-- app.js
+|   |-- style.css
+|   `-- sample-report.json
 `-- README.md
 ```
 

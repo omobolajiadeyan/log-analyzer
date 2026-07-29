@@ -68,6 +68,42 @@ class AnalysisResult:
     def high_count(self):
         return sum(1 for a in self.alerts if a.severity == "HIGH")
 
+    @property
+    def severity_counts(self):
+        counts = {severity: 0 for severity in SEVERITY_ORDER}
+        for alert in self.alerts:
+            counts[alert.severity] = counts.get(alert.severity, 0) + 1
+        return counts
+
+    @property
+    def category_counts(self):
+        counts = defaultdict(int)
+        for alert in self.alerts:
+            counts[alert.category] += 1
+        return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
+
+    @property
+    def risk_level(self):
+        if self.critical_count:
+            return "CRITICAL"
+        if self.high_count:
+            return "HIGH"
+        if self.total_alerts:
+            return "MEDIUM"
+        return "LOW"
+
+
+def top_offending_ips(alerts: list[Alert], limit: int = 5) -> list[dict]:
+    ip_pattern = re.compile(r"\b(\d{1,3}(?:\.\d{1,3}){3})\b")
+    ip_counts = defaultdict(int)
+    for alert in alerts:
+        for ip in ip_pattern.findall(alert.line_content):
+            ip_counts[ip] += 1
+    return [
+        {"ip": ip, "alert_count": count}
+        for ip, count in sorted(ip_counts.items(), key=lambda item: item[1], reverse=True)[:limit]
+    ]
+
 
 def analyze_file(filepath: str) -> tuple[list[Alert], int]:
     alerts = []
@@ -138,28 +174,27 @@ def print_results(result: AnalysisResult, verbose: bool = False):
         return
 
     for category, alerts in by_category.items():
-        print(f"\n{BOLD}{CYAN}  [{category}]{RESET}  â€”  {len(alerts)} alert(s)")
+        print(f"\n{BOLD}{CYAN}  [{category}]{RESET}  -  {len(alerts)} alert(s)")
         for alert in alerts:
             print_alert(alert, verbose=verbose)
 
-    # Top offending IPs if present
-    ip_pattern = re.compile(r"\b(\d{1,3}(?:\.\d{1,3}){3})\b")
-    ip_counts = defaultdict(int)
-    for alert in result.alerts:
-        for ip in ip_pattern.findall(alert.line_content):
-            ip_counts[ip] += 1
-
-    if ip_counts:
-        top_ips = sorted(ip_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+    top_ips = top_offending_ips(result.alerts)
+    if top_ips:
         print(f"\n{BOLD}  Top Offending IPs:{RESET}")
-        for ip, count in top_ips:
-            print(f"    {RED}{ip}{RESET}  â€”  {count} alert(s)")
+        for item in top_ips:
+            print(f"    {RED}{item['ip']}{RESET}  -  {item['alert_count']} alert(s)")
 
     print()
 
 
 def export_json(result: AnalysisResult, output_file: str):
     data = {
+        "summary": {
+            "risk_level": result.risk_level,
+            "severity_counts": result.severity_counts,
+            "category_counts": result.category_counts,
+            "top_offending_ips": top_offending_ips(result.alerts),
+        },
         "files_analyzed": result.files_analyzed,
         "total_lines": result.total_lines,
         "total_alerts": result.total_alerts,
@@ -282,7 +317,7 @@ def collect_log_files(target: str) -> list[str]:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Log Analyzer â€” Threat detection for system and application logs",
+        description="Log Analyzer - Threat detection for system and application logs",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

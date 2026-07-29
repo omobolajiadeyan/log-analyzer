@@ -1,0 +1,258 @@
+{
+  "summary": {
+    "risk_level": "CRITICAL",
+    "severity_counts": {
+      "CRITICAL": 3,
+      "HIGH": 9,
+      "MEDIUM": 7,
+      "LOW": 0
+    },
+    "category_counts": {
+      "Authentication": 10,
+      "Web Attack": 5,
+      "Malware": 1,
+      "Network": 1,
+      "Persistence": 1,
+      "Privilege Escalation": 1
+    },
+    "top_offending_ips": [
+      {
+        "ip": "192.168.1.105",
+        "alert_count": 7
+      },
+      {
+        "ip": "10.0.0.50",
+        "alert_count": 2
+      },
+      {
+        "ip": "203.0.113.99",
+        "alert_count": 2
+      },
+      {
+        "ip": "198.51.100.7",
+        "alert_count": 1
+      },
+      {
+        "ip": "10.0.0.5",
+        "alert_count": 1
+      }
+    ]
+  },
+  "files_analyzed": [
+    "sample_logs/web_access.log",
+    "sample_logs/auth.log"
+  ],
+  "total_lines": 21,
+  "total_alerts": 19,
+  "alerts": [
+    {
+      "rule_id": "NET-002",
+      "rule_name": "SQL Injection Attempt",
+      "severity": "CRITICAL",
+      "category": "Web Attack",
+      "mitre": "T1190 - Exploit Public-Facing Application",
+      "file": "sample_logs/web_access.log",
+      "line_number": 4,
+      "line_content": "10.0.0.50 - - [10/Jan/2024:08:01:10 +0000] \"POST /search?q=' OR '1'='1 HTTP/1.1\" 400 128",
+      "description": "SQL injection string detected in request."
+    },
+    {
+      "rule_id": "NET-002",
+      "rule_name": "SQL Injection Attempt",
+      "severity": "CRITICAL",
+      "category": "Web Attack",
+      "mitre": "T1190 - Exploit Public-Facing Application",
+      "file": "sample_logs/web_access.log",
+      "line_number": 5,
+      "line_content": "10.0.0.50 - - [10/Jan/2024:08:01:11 +0000] \"GET /products?id=1 UNION SELECT username,password FROM users-- HTTP/1.1\" 500 64",
+      "description": "SQL injection string detected in request."
+    },
+    {
+      "rule_id": "NET-004",
+      "rule_name": "Directory Traversal",
+      "severity": "HIGH",
+      "category": "Web Attack",
+      "mitre": "T1083 - File and Directory Discovery",
+      "file": "sample_logs/web_access.log",
+      "line_number": 6,
+      "line_content": "203.0.113.99 - - [10/Jan/2024:08:02:00 +0000] \"GET /index.php?page=../../../../etc/passwd HTTP/1.1\" 403 32",
+      "description": "Path traversal attempt to access files outside web root."
+    },
+    {
+      "rule_id": "NET-004",
+      "rule_name": "Directory Traversal",
+      "severity": "HIGH",
+      "category": "Web Attack",
+      "mitre": "T1083 - File and Directory Discovery",
+      "file": "sample_logs/web_access.log",
+      "line_number": 7,
+      "line_content": "203.0.113.99 - - [10/Jan/2024:08:02:01 +0000] \"GET /index.php?page=%2e%2e%2f%2e%2e%2fetc/shadow HTTP/1.1\" 403 32",
+      "description": "Path traversal attempt to access files outside web root."
+    },
+    {
+      "rule_id": "NET-003",
+      "rule_name": "XSS Attempt",
+      "severity": "HIGH",
+      "category": "Web Attack",
+      "mitre": "T1059.007 - JavaScript",
+      "file": "sample_logs/web_access.log",
+      "line_number": 8,
+      "line_content": "198.51.100.7 - - [10/Jan/2024:08:03:00 +0000] \"GET /search?q=<script>alert(document.cookie)</script> HTTP/1.1\" 200 512",
+      "description": "Cross-site scripting (XSS) attempt detected."
+    },
+    {
+      "rule_id": "AUTH-001",
+      "rule_name": "Failed Login Attempt",
+      "severity": "MEDIUM",
+      "category": "Authentication",
+      "mitre": "T1110 - Brute Force",
+      "file": "sample_logs/auth.log",
+      "line_number": 1,
+      "line_content": "Jan 10 08:12:01 server sshd[1234]: Failed password for invalid user admin from 192.168.1.105 port 54321 ssh2",
+      "description": "A login attempt failed \u2014 could indicate a brute-force attack if repeated."
+    },
+    {
+      "rule_id": "AUTH-001",
+      "rule_name": "Failed Login Attempt",
+      "severity": "MEDIUM",
+      "category": "Authentication",
+      "mitre": "T1110 - Brute Force",
+      "file": "sample_logs/auth.log",
+      "line_number": 2,
+      "line_content": "Jan 10 08:12:03 server sshd[1234]: Failed password for invalid user root from 192.168.1.105 port 54322 ssh2",
+      "description": "A login attempt failed \u2014 could indicate a brute-force attack if repeated."
+    },
+    {
+      "rule_id": "AUTH-001",
+      "rule_name": "Failed Login Attempt",
+      "severity": "MEDIUM",
+      "category": "Authentication",
+      "mitre": "T1110 - Brute Force",
+      "file": "sample_logs/auth.log",
+      "line_number": 3,
+      "line_content": "Jan 10 08:12:05 server sshd[1234]: Failed password for invalid user test from 192.168.1.105 port 54323 ssh2",
+      "description": "A login attempt failed \u2014 could indicate a brute-force attack if repeated."
+    },
+    {
+      "rule_id": "AUTH-001",
+      "rule_name": "Failed Login Attempt",
+      "severity": "MEDIUM",
+      "category": "Authentication",
+      "mitre": "T1110 - Brute Force",
+      "file": "sample_logs/auth.log",
+      "line_number": 4,
+      "line_content": "Jan 10 08:12:07 server sshd[1234]: Failed password for invalid user oracle from 192.168.1.105 port 54324 ssh2",
+      "description": "A login attempt failed \u2014 could indicate a brute-force attack if repeated."
+    },
+    {
+      "rule_id": "AUTH-001",
+      "rule_name": "Failed Login Attempt",
+      "severity": "MEDIUM",
+      "category": "Authentication",
+      "mitre": "T1110 - Brute Force",
+      "file": "sample_logs/auth.log",
+      "line_number": 5,
+      "line_content": "Jan 10 08:12:09 server sshd[1234]: Failed password for invalid user ubuntu from 192.168.1.105 port 54325 ssh2",
+      "description": "A login attempt failed \u2014 could indicate a brute-force attack if repeated."
+    },
+    {
+      "rule_id": "AUTH-001",
+      "rule_name": "Failed Login Attempt",
+      "severity": "MEDIUM",
+      "category": "Authentication",
+      "mitre": "T1110 - Brute Force",
+      "file": "sample_logs/auth.log",
+      "line_number": 6,
+      "line_content": "Jan 10 08:12:11 server sshd[1234]: error: maximum authentication attempts exceeded for invalid user admin from 192.168.1.105 port 54326 ssh2 [preauth]",
+      "description": "A login attempt failed \u2014 could indicate a brute-force attack if repeated."
+    },
+    {
+      "rule_id": "AUTH-002",
+      "rule_name": "Multiple Failed Logins (Brute Force)",
+      "severity": "HIGH",
+      "category": "Authentication",
+      "mitre": "T1110 - Brute Force",
+      "file": "sample_logs/auth.log",
+      "line_number": 6,
+      "line_content": "Jan 10 08:12:11 server sshd[1234]: error: maximum authentication attempts exceeded for invalid user admin from 192.168.1.105 port 54326 ssh2 [preauth]",
+      "description": "Account locked or too many failed attempts \u2014 possible brute-force attack."
+    },
+    {
+      "rule_id": "AUTH-003",
+      "rule_name": "Root Login",
+      "severity": "HIGH",
+      "category": "Authentication",
+      "mitre": "T1078 - Valid Accounts",
+      "file": "sample_logs/auth.log",
+      "line_number": 7,
+      "line_content": "Jan 10 08:15:00 server sshd[2345]: Accepted password for root from 10.0.0.5 port 22 ssh2",
+      "description": "Root account was accessed \u2014 should be audited carefully."
+    },
+    {
+      "rule_id": "AUTH-003",
+      "rule_name": "Root Login",
+      "severity": "HIGH",
+      "category": "Authentication",
+      "mitre": "T1078 - Valid Accounts",
+      "file": "sample_logs/auth.log",
+      "line_number": 8,
+      "line_content": "Jan 10 08:15:01 server sshd[2345]: pam_unix(sshd:session): session opened for user root by (uid=0)",
+      "description": "Root account was accessed \u2014 should be audited carefully."
+    },
+    {
+      "rule_id": "AUTH-003",
+      "rule_name": "Root Login",
+      "severity": "HIGH",
+      "category": "Authentication",
+      "mitre": "T1078 - Valid Accounts",
+      "file": "sample_logs/auth.log",
+      "line_number": 9,
+      "line_content": "Jan 10 09:00:00 server sudo[3456]: user1 : TTY=pts/0 ; PWD=/home/user1 ; USER=root ; COMMAND=/bin/bash",
+      "description": "Root account was accessed \u2014 should be audited carefully."
+    },
+    {
+      "rule_id": "SYS-001",
+      "rule_name": "Privilege Escalation",
+      "severity": "HIGH",
+      "category": "Privilege Escalation",
+      "mitre": "T1548 - Abuse Elevation Control Mechanism",
+      "file": "sample_logs/auth.log",
+      "line_number": 9,
+      "line_content": "Jan 10 09:00:00 server sudo[3456]: user1 : TTY=pts/0 ; PWD=/home/user1 ; USER=root ; COMMAND=/bin/bash",
+      "description": "A process attempted to escalate privileges."
+    },
+    {
+      "rule_id": "SYS-004",
+      "rule_name": "Cron Job Modified",
+      "severity": "MEDIUM",
+      "category": "Persistence",
+      "mitre": "T1053.003 - Cron",
+      "file": "sample_logs/auth.log",
+      "line_number": 10,
+      "line_content": "Jan 10 09:01:00 server cron[4567]: (user1) CMD (/tmp/backdoor.sh)",
+      "description": "Cron job added or modified \u2014 could be persistence mechanism."
+    },
+    {
+      "rule_id": "MAL-001",
+      "rule_name": "Reverse Shell Indicator",
+      "severity": "CRITICAL",
+      "category": "Malware",
+      "mitre": "T1059.004 - Unix Shell",
+      "file": "sample_logs/auth.log",
+      "line_number": 10,
+      "line_content": "Jan 10 09:01:00 server cron[4567]: (user1) CMD (/tmp/backdoor.sh)",
+      "description": "Reverse shell or backdoor indicator found."
+    },
+    {
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detected",
+      "severity": "HIGH",
+      "category": "Network",
+      "mitre": "T1046 - Network Service Discovery",
+      "file": "sample_logs/auth.log",
+      "line_number": 11,
+      "line_content": "Jan 10 09:05:00 server kernel: iptables: SYN flood from 203.0.113.42",
+      "description": "Potential port scanning activity detected."
+    }
+  ]
+}

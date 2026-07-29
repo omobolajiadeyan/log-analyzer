@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Log Analyzer Report Viewer</title>
+  <meta name="description" content="Browser report viewer for Log Analyzer JSON output with MITRE ATT&CK mapped alerts." />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <h1>Log Analyzer</h1>
+        <p>MITRE ATT&CK mapped log-detection report viewer</p>
+      </div>
+      <label class="upload">
+        <input id="report-input" type="file" accept="application/json,.json" />
+        Load JSON
+      </label>
+    </header>
+
+    <section class="summary-grid" aria-label="Report summary">
+      <article>
+        <span>Risk level</span>
+        <strong id="risk-level">-</strong>
+      </article>
+      <article>
+        <span>Total alerts</span>
+        <strong id="total-alerts">-</strong>
+      </article>
+      <article>
+        <span>Files analyzed</span>
+        <strong id="files-analyzed">-</strong>
+      </article>
+      <article>
+        <span>Total lines</span>
+        <strong id="total-lines">-</strong>
+      </article>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Severity</h2>
+        <div id="severity-list" class="metric-list"></div>
+
+        <h2>Top IPs</h2>
+        <div id="ip-list" class="metric-list"></div>
+      </aside>
+
+      <section class="panel alerts-panel">
+        <div class="panel-heading">
+          <h2>Alerts</h2>
+          <select id="severity-filter" aria-label="Filter by severity">
+            <option value="ALL">All severities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+        <div id="alerts" class="alerts"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
