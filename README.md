@@ -176,6 +176,18 @@ This tool is a lightweight detection aid, not a replacement for a full SIEM,
 EDR, incident-response process, or tuned production detection pipeline. Treat
 alerts as leads for investigation and validate them against your environment.
 
+## Part of the Security Automation Toolkit
+
+Log Analyzer is one piece of a practical security-automation toolkit. The others:
+
+- **[PhishGuard AI](https://github.com/omobolajiadeyan/phishguard-ai)** — explainable offline phishing detection (flagship, on GitHub Marketplace)
+- **[Secrets Scanner](https://github.com/omobolajiadeyan/secrets-scanner)** — exposed-credential detection with redacted SARIF/JSON evidence
+- **[BehaviorSense](https://github.com/omobolajiadeyan/behaviorsense)** — UEBA-style behavioral anomaly detection
+- **[CVE Dashboard](https://github.com/omobolajiadeyan/cve-dashboard)** — live NVD vulnerability intelligence
+- **[VulnGPT](https://github.com/omobolajiadeyan/vulngpt)** — CVE-to-remediation triage assistant
+
+Full portfolio: [github.com/omobolajiadeyan](https://github.com/omobolajiadeyan)
+
 ## Author
 
 **Omobolaji Adeyan**  
