@@ -1,5 +1,9 @@
 # Log Analyzer
 
+[![Tests](https://github.com/omobolajiadeyan/log-analyzer/actions/workflows/tests.yml/badge.svg)](https://github.com/omobolajiadeyan/log-analyzer/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Maintainer](https://img.shields.io/badge/Maintainer-Omobolaji_Adeyan-0A66C2?style=flat-square)](https://github.com/omobolajiadeyan)
+
 A lightweight Python threat-detection engine for system and application logs.
 It scans log files for attack indicators, suspicious behavior, and policy
 violations, then maps alerts to MITRE ATT&CK techniques.
