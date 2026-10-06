@@ -26,6 +26,7 @@ logs, system logs, and application logs without requiring a full SIEM setup.
 - Reusable GitHub Action wrapper
 - Browser report viewer for exported JSON
 - Top offending IP summary
+- Explicit non-zero failure when requested log paths cannot be read
 - Zero third-party dependencies
 
 ## Current Evidence
@@ -149,6 +150,8 @@ The analyzer reports:
 - matching log-line context
 
 JSON and SARIF outputs are designed for automation and review workflows.
+Unreadable files and directory traversal errors are reported as an incomplete
+analysis and return a non-zero exit code rather than a clean result.
 
 ## Project Structure
 

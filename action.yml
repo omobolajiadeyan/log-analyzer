@@ -29,9 +29,13 @@ runs:
   using: composite
   steps:
     - name: Run log analysis
+      env:
+        ANALYSIS_PATH: ${{ inputs.path }}
+        ANALYSIS_SEVERITY: ${{ inputs.severity }}
+        ANALYSIS_OUTPUT: ${{ inputs.output }}
       shell: bash
       run: |
-        python "${{ github.action_path }}/analyzer.py" "${{ inputs.path }}" \
-          --severity "${{ inputs.severity }}" \
+        python "$GITHUB_ACTION_PATH/analyzer.py" "$ANALYSIS_PATH" \
+          --severity "$ANALYSIS_SEVERITY" \
           --format sarif \
-          --output "${{ inputs.output }}"
+          --output "$ANALYSIS_OUTPUT"

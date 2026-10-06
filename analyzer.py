@@ -55,6 +55,7 @@ class AnalysisResult:
     files_analyzed: list = field(default_factory=list)
     total_lines: int = 0
     alerts: list = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
 
     @property
     def total_alerts(self):
@@ -109,12 +110,8 @@ def analyze_file(filepath: str) -> tuple[list[Alert], int]:
     alerts = []
     compiled_rules = [(r, re.compile(r["regex"])) for r in RULES]
 
-    try:
-        with open(filepath, encoding="utf-8", errors="ignore") as f:
-            lines = f.readlines()
-    except Exception as e:
-        print(f"{YELLOW}Warning: Could not read {filepath}: {e}{RESET}")
-        return [], 0
+    with open(filepath, encoding="utf-8", errors="ignore") as f:
+        lines = f.readlines()
 
     for line_num, line in enumerate(lines, start=1):
         for rule, regex in compiled_rules:
@@ -167,9 +164,15 @@ def print_results(result: AnalysisResult, verbose: bool = False):
     print(f"  Total alerts   : {result.total_alerts}")
     print(f"  Critical       : {RED}{result.critical_count}{RESET}")
     print(f"  High           : {ORANGE}{result.high_count}{RESET}")
+    print(f"  Read errors    : {len(result.errors)}")
     print(f"{'='*65}")
 
-    if not result.alerts:
+    if result.errors:
+        print(f"\n{YELLOW}Analysis incomplete; some paths could not be read:{RESET}")
+        for error in result.errors:
+            print(f"  {error}")
+
+    if not result.alerts and not result.errors:
         print(f"\n{GREEN}  No threats detected. Logs look clean.{RESET}\n")
         return
 
@@ -299,18 +302,27 @@ def export_results(result: AnalysisResult, output_file: str, output_format: str)
         export_json(result, output_file)
 
 
-def collect_log_files(target: str) -> list[str]:
+def collect_log_files(target: str, errors: list[str] | None = None) -> list[str]:
     """Collect all readable log files from a path."""
     target_path = Path(target)
+    log_extensions = {".log", ".txt", ".out", ".err", ".syslog", ".access", ".error"}
+
+    def is_log_file(path: Path) -> bool:
+        return path.suffix in log_extensions or "log" in path.name.lower()
+
     if target_path.is_file():
-        return [str(target_path)]
+        return [str(target_path)] if is_log_file(target_path) else []
 
     log_files = []
-    log_extensions = {".log", ".txt", ".out", ".err", ".syslog", ".access", ".error"}
-    for root, _, files in os.walk(target_path):
+
+    def record_walk_error(error: OSError) -> None:
+        if errors is not None:
+            errors.append(f"{error.filename or target_path}: {error}")
+
+    for root, _, files in os.walk(target_path, onerror=record_walk_error):
         for filename in files:
             fp = Path(root) / filename
-            if fp.suffix in log_extensions or "log" in fp.name.lower():
+            if is_log_file(fp):
                 log_files.append(str(fp))
     return log_files
 
@@ -354,16 +366,23 @@ Examples:
 
     print_banner()
 
-    log_files = collect_log_files(args.target)
+    result = AnalysisResult()
+    log_files = collect_log_files(args.target, errors=result.errors)
     if not log_files:
+        if result.errors:
+            print_results(result)
+            sys.exit(1)
         print(f"{YELLOW}No log files found in '{args.target}'.{RESET}")
         sys.exit(0)
 
     print(f"{CYAN}Analyzing {len(log_files)} file(s) with {len(RULES)} detection rules...{RESET}")
 
-    result = AnalysisResult()
     for log_file in log_files:
-        alerts, line_count = analyze_file(log_file)
+        try:
+            alerts, line_count = analyze_file(log_file)
+        except OSError as error:
+            result.errors.append(f"{log_file}: {error}")
+            continue
         result.files_analyzed.append(log_file)
         result.total_lines += line_count
         result.alerts.extend(alerts)
@@ -376,6 +395,9 @@ Examples:
 
     if args.output:
         export_results(result, args.output, args.format)
+
+    if result.errors:
+        sys.exit(1)
 
     if result.critical_count > 0:
         sys.exit(2)
