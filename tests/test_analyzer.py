@@ -1,7 +1,10 @@
 import json
+import io
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from unittest.mock import patch
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -14,6 +17,7 @@ from analyzer import (
     collect_log_files,
     export_json,
     top_offending_ips,
+    main,
 )
 
 FIXTURES = Path(__file__).resolve().parent.parent / "sample_logs"
@@ -85,10 +89,14 @@ class AnalyzeFileTests(unittest.TestCase):
         finally:
             Path(path).unlink()
 
-    def test_missing_file_returns_empty_without_raising(self):
-        alerts, line_count = analyze_file("/nonexistent/path/does-not-exist.log")
-        self.assertEqual(alerts, [])
-        self.assertEqual(line_count, 0)
+    def test_missing_file_raises_read_error(self):
+        with self.assertRaises(OSError):
+            analyze_file("/nonexistent/path/does-not-exist.log")
+
+    def test_unreadable_file_raises_read_error(self):
+        with patch("builtins.open", side_effect=PermissionError("denied")):
+            with self.assertRaises(PermissionError):
+                analyze_file("unreadable.log")
 
     def test_provided_sample_auth_log_triggers_alerts(self):
         alerts, line_count = analyze_file(str(FIXTURES / "auth.log"))
@@ -107,6 +115,28 @@ class CollectLogFilesTests(unittest.TestCase):
             target = Path(tmp) / "auth.log"
             target.write_text("test\n")
             self.assertEqual(collect_log_files(str(target)), [str(target)])
+
+    def test_single_file_target_uses_same_filter_as_recursive_scan(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "notes.md"
+            target.write_text("not a log\n")
+
+            self.assertEqual(collect_log_files(str(target)), [])
+
+    def test_cli_returns_nonzero_and_reports_unreadable_log(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "auth.log"
+            target.write_text("log\n")
+
+            with patch("analyzer.sys.argv", ["analyzer.py", str(target)]):
+                with patch("analyzer.analyze_file", side_effect=PermissionError("denied")):
+                    output = io.StringIO()
+                    with redirect_stdout(output), self.assertRaises(SystemExit) as exit_info:
+                        main()
+
+            self.assertEqual(exit_info.exception.code, 1)
+            self.assertIn("Analysis incomplete", output.getvalue())
+            self.assertIn(str(target), output.getvalue())
 
     def test_directory_collects_files_by_extension_or_name(self):
         with tempfile.TemporaryDirectory() as tmp:
